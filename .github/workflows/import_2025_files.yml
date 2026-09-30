@@ -1,31 +1,65 @@
 name: Import 2025 files
+
 on:
   push:
-    branches: [main]
-    paths: [.github/workflows/import_2025_files.yml]
+    branches:
+      - main
+    paths:
+      - ".github/workflows/import_2025_files.yml"
   workflow_dispatch:
+
 permissions:
   contents: write
+
 jobs:
   import-2025-files:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout this repo
+      - name: Checkout destination repository
         uses: actions/checkout@v4
-      - name: Clone original repo and switch to the 2025 (initial) commit
+        with:
+          path: destination
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Checkout 2025 snapshot from source repository
+        uses: actions/checkout@v4
+        with:
+          repository: OzgenOzan/prediction_of_ACP
+          ref: 56ab158b9eb4a6d0a697b7b3dd2d25da31617265
+          token: ${{ secrets.SOURCE_REPO_PAT }}
+          path: source
+          fetch-depth: 1
+
+      - name: Verify source commit
+        working-directory: source
         run: |
-          git clone -q https://github.com/OzgenOzan/prediction_of_ACP.git /tmp/orig
-          cd /tmp/orig
-          git checkout -q 56ab158b9eb4a6d0a697b7b3dd2d25da31617265
           git log --oneline -1
-      - name: Copy the full 2025 snapshot into this repo (keep our README)
+          test "$(git rev-parse HEAD)" = "56ab158b9eb4a6d0a697b7b3dd2d25da31617265"
+
+      - name: Copy full 2025 snapshot into destination
         run: |
-          rsync -a --exclude='.git' --exclude='README.md' /tmp/orig/ "$GITHUB_WORKSPACE/"
-          ls -la
+          rsync -a \
+            --exclude=".git" \
+            --exclude="README.md" \
+            --exclude=".github/workflows/import_2025_files.yml" \
+            source/ destination/
+
+          ls -la destination
+
       - name: Commit and push
+        working-directory: destination
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
           git add -A
-          git commit -m "Import full 2025 snapshot from OzgenOzan/prediction_of_ACP@56ab158" || echo "No changes to commit"
-          git push
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git commit -m "Import full 2025 snapshot from OzgenOzan/prediction_of_ACP@56ab158"
+          git push origin HEAD:main
