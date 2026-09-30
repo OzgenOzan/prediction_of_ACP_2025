@@ -23,6 +23,17 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
+      - name: Verify source token is available
+        env:
+          SOURCE_REPO_PAT: ${{ secrets.SOURCE_REPO_PAT }}
+        run: |
+          if [ -z "$SOURCE_REPO_PAT" ]; then
+            echo "::error::SOURCE_REPO_PAT is missing or unavailable"
+            exit 1
+          fi
+
+          echo "SOURCE_REPO_PAT is available"
+
       - name: Checkout 2025 snapshot from source repository
         uses: actions/checkout@v4
         with:
@@ -31,12 +42,18 @@ jobs:
           token: ${{ secrets.SOURCE_REPO_PAT }}
           path: source
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Verify source commit
         working-directory: source
         run: |
-          git log --oneline -1
-          test "$(git rev-parse HEAD)" = "56ab158b9eb4a6d0a697b7b3dd2d25da31617265"
+          EXPECTED_COMMIT="56ab158b9eb4a6d0a697b7b3dd2d25da31617265"
+          ACTUAL_COMMIT="$(git rev-parse HEAD)"
+
+          echo "Expected commit: $EXPECTED_COMMIT"
+          echo "Actual commit:   $ACTUAL_COMMIT"
+
+          test "$ACTUAL_COMMIT" = "$EXPECTED_COMMIT"
 
       - name: Copy full 2025 snapshot into destination
         run: |
@@ -52,7 +69,8 @@ jobs:
         working-directory: destination
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add -A
 
@@ -61,5 +79,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Import full 2025 snapshot from OzgenOzan/prediction_of_ACP@56ab158"
+          git commit \
+            -m "Import full 2025 snapshot from OzgenOzan/prediction_of_ACP@56ab158"
+
           git push origin HEAD:main
