@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Trained model artifacts (regenerate by running the pipeline)
+*.joblib
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Generated pipeline intermediates/outputs (regenerate; keep curated inputs tracked)
+*.fasta
+output.xlsx

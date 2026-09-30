@@ -1,0 +1,19 @@
+# RECONSTRUCTED by code audit (2026-08) — VERIFY AGAINST ORIGINAL ENVIRONMENT.
+# The environment.yml previously committed in this repository was a broken
+# symbolic link whose content is unrecoverable. The dependencies below were
+# inferred from the notebook imports (pandas, scikit-learn, biopython, joblib)
+# and the notebook kernelspec metadata (Python 3.11.5). See also
+# libraries&packages.xlsx for the author's original package list.
+name: acp-prediction
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11.5
+  - pandas
+  - numpy
+  - scikit-learn
+  - joblib
+  - biopython
+  - jupyter
+  - pip
