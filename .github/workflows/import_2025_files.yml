@@ -1,4 +1,4 @@
-name: Import 2025 file
+name: Import 2025 files
 on:
   push:
     branches: [main]
